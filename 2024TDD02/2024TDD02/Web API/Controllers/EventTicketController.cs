@@ -1,10 +1,12 @@
-﻿using DAL.Databases; // Add this to use AppDbContext
+﻿using DAL.Models;
+using DAL.Databases;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class EventTicketController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -14,6 +16,36 @@ namespace WebAPI.Controllers
             _context = context;
         }
 
+        // Endpoint to retrieve all events
+        [HttpGet("events")]
+        public async Task<IActionResult> GetAllEvents()
+        {
+            try
+            {
+                var events = await _context.Events
+                    .Select(e => new
+                    {
+                        e.Id,
+                        e.Name,
+                        e.TicketPrice,
+                        e.AvailableTickets
+                    })
+                    .ToListAsync();
+
+                if (events == null || events.Count == 0)
+                {
+                    return NotFound("No events available.");
+                }
+
+                return Ok(events);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while retrieving events: {ex.Message}");
+            }
+        }
+
+        // Endpoint to purchase tickets
         [HttpPost("purchase")]
         public async Task<IActionResult> PurchaseTicket([FromBody] PurchaseRequest request)
         {
@@ -22,63 +54,57 @@ namespace WebAPI.Controllers
                 return BadRequest("Invalid request payload.");
             }
 
-            // Retrieve the user from the database
+            // Retrieve the event
+            var eventDetails = await _context.Events
+                .FirstOrDefaultAsync(e => e.Id == request.EventId);
+
+            if (eventDetails == null)
+            {
+                return NotFound("Event not found.");
+            }
+
+            // Check if enough tickets are available
+            if (eventDetails.AvailableTickets < request.Quantity)
+            {
+                return BadRequest("Not enough tickets available for this event.");
+            }
+
+            // Retrieve the user
             var user = await _context.Users.FindAsync(request.UserId);
             if (user == null)
             {
                 return NotFound("User not found.");
             }
 
-            // Retrieve the event to check the ticket price
-            var eventDetails = await _context.Events.FindAsync(request.EventId);
-            if (eventDetails == null)
-            {
-                return NotFound("Event not found.");
-            }
-
-            // Calculate total ticket cost
+            // Calculate total cost
             var totalCost = eventDetails.TicketPrice * request.Quantity;
 
-            // Check if the user has sufficient balance
+            // Check if user has enough balance
             if (user.Balance < totalCost)
             {
                 return BadRequest("Insufficient balance.");
             }
 
-            // Deduct the balance
+            // Deduct user balance and decrement available tickets
             user.Balance -= totalCost;
+            eventDetails.AvailableTickets -= request.Quantity;
 
-            // Add the ticket purchase to EventTickets table
-            _context.EventTickets.Add(new DAL.Models.EventTicket
+            // Add the ticket to the EventTickets table
+            var newTicket = new EventTicket
             {
                 UserId = request.UserId,
                 EventId = request.EventId,
                 Quantity = request.Quantity,
                 PurchaseDate = DateTime.UtcNow
-            });
+            };
+            _context.EventTickets.Add(newTicket);
 
-            // Update the user's balance in the database
+            // Update the database
             _context.Users.Update(user);
+            _context.Events.Update(eventDetails);
             await _context.SaveChangesAsync();
 
             return Ok("Ticket purchased successfully!");
-        }
-
-        [HttpGet("user/{userId}/tickets")]
-        public IActionResult GetUserTickets(int userId)
-        {
-            var tickets = _context.EventTickets
-                .Where(ticket => ticket.UserId == userId)
-                .ToList();
-            return Ok(tickets);
-        }
-
-        [HttpGet("events")]
-        public IActionResult GetAvailableEvents()
-        {
-            // Fetch directly from the Events table in the database
-            var events = _context.Events.ToList();
-            return Ok(events);
         }
     }
 

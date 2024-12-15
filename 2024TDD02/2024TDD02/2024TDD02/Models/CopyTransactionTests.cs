@@ -1,6 +1,6 @@
 using DAL.Models;
 
-namespace _2024TDD02.Models
+namespace _2024TDD08.Models
 {
     public class CopyTransactionTests
     {
