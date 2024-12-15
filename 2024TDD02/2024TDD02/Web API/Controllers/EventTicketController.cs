@@ -15,19 +15,53 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost("purchase")]
-        public IActionResult PurchaseTicket([FromBody] PurchaseRequest request)
+        public async Task<IActionResult> PurchaseTicket([FromBody] PurchaseRequest request)
         {
-            // This still uses the service for purchasing logic
-            var success = _context.EventTickets.Add(new DAL.Models.EventTicket
+            if (request == null || request.Quantity <= 0)
+            {
+                return BadRequest("Invalid request payload.");
+            }
+
+            // Retrieve the user from the database
+            var user = await _context.Users.FindAsync(request.UserId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Retrieve the event to check the ticket price
+            var eventDetails = await _context.Events.FindAsync(request.EventId);
+            if (eventDetails == null)
+            {
+                return NotFound("Event not found.");
+            }
+
+            // Calculate total ticket cost
+            var totalCost = eventDetails.TicketPrice * request.Quantity;
+
+            // Check if the user has sufficient balance
+            if (user.Balance < totalCost)
+            {
+                return BadRequest("Insufficient balance.");
+            }
+
+            // Deduct the balance
+            user.Balance -= totalCost;
+
+            // Add the ticket purchase to EventTickets table
+            _context.EventTickets.Add(new DAL.Models.EventTicket
             {
                 UserId = request.UserId,
                 EventId = request.EventId,
                 Quantity = request.Quantity,
                 PurchaseDate = DateTime.UtcNow
             });
-            _context.SaveChanges();
 
-            return Ok("Ticket purchased successfully");
+            // Update the user's balance in the database
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok("Ticket purchased successfully!");
         }
 
         [HttpGet("user/{userId}/tickets")]

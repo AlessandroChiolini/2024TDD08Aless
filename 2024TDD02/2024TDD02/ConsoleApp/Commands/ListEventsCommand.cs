@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using ConsoleApp.DTOs; // Add namespace reference
 
 namespace ConsoleApp.Commands
 {
@@ -21,7 +22,6 @@ namespace ConsoleApp.Commands
             {
                 Console.WriteLine("Fetching available events...");
 
-                // Correct API endpoint
                 var response = await _httpClient.GetAsync("api/EventTicket/events");
 
                 if (response.IsSuccessStatusCode)
@@ -58,13 +58,5 @@ namespace ConsoleApp.Commands
                 Console.ResetColor();
             }
         }
-    }
-
-    public class EventDto
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public decimal TicketPrice { get; set; }
-        public int AvailableTickets { get; set; }
     }
 }

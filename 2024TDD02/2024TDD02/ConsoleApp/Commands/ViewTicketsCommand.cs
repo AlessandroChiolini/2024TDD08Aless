@@ -21,10 +21,14 @@ namespace ConsoleApp.Commands
         {
             try
             {
-                var response = await _httpClient.GetAsync($"api/Tickets/user/{_userId}");
+                Console.WriteLine("Fetching your purchased tickets...");
+
+                // Correct endpoint to fetch user's tickets
+                var response = await _httpClient.GetAsync($"api/EventTicket/user/{_userId}/tickets");
 
                 if (response.IsSuccessStatusCode)
                 {
+                    // Deserialize tickets response
                     var tickets = await response.Content.ReadFromJsonAsync<List<TicketDto>>();
 
                     if (tickets == null || tickets.Count == 0)
@@ -35,18 +39,23 @@ namespace ConsoleApp.Commands
                         return;
                     }
 
+                    // Display user's tickets
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Your Purchased Tickets:");
+                    Console.ResetColor();
+
                     foreach (var ticket in tickets)
                     {
-                        Console.WriteLine($"Event: {ticket.EventName}, Date: {ticket.EventDate}, Quantity: {ticket.Quantity}");
+                        Console.WriteLine($"Event: {ticket.EventName}, Date: {ticket.EventDate:yyyy-MM-dd}, Quantity: {ticket.Quantity}");
                     }
-                    Console.ResetColor();
                 }
                 else
                 {
+                    // Log response failure
                     Console.ForegroundColor = ConsoleColor.Red;
+                    var errorContent = await response.Content.ReadAsStringAsync();
                     Console.WriteLine("Failed to retrieve tickets. Please try again.");
+                    Console.WriteLine($"Error: {response.StatusCode}, Details: {errorContent}");
                     Console.ResetColor();
                 }
             }
@@ -59,6 +68,7 @@ namespace ConsoleApp.Commands
         }
     }
 
+    // DTO class to match the API response structure
     public class TicketDto
     {
         public string EventName { get; set; }
