@@ -4,6 +4,7 @@ using DAL.Databases;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241215152624_AddServiceCardToUser")]
+    partial class AddServiceCardToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,6 +48,24 @@ namespace DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CopyTransactions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Amount = 1.00m,
+                            Date = new DateTime(2024, 12, 15, 15, 26, 23, 989, DateTimeKind.Utc).AddTicks(4297),
+                            NumberOfCopies = 10,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Amount = 0.50m,
+                            Date = new DateTime(2024, 12, 15, 15, 26, 23, 989, DateTimeKind.Utc).AddTicks(5533),
+                            NumberOfCopies = 5,
+                            UserId = 1
+                        });
                 });
 
             modelBuilder.Entity("DAL.Models.Event", b =>
@@ -75,7 +96,7 @@ namespace DAL.Migrations
                         {
                             Id = "E1",
                             AvailableTickets = 100,
-                            Date = new DateTime(2024, 12, 30, 15, 49, 56, 286, DateTimeKind.Utc).AddTicks(4447),
+                            Date = new DateTime(2024, 12, 30, 15, 26, 23, 989, DateTimeKind.Utc).AddTicks(5946),
                             Name = "University Concert",
                             TicketPrice = 50.0m
                         },
@@ -83,73 +104,9 @@ namespace DAL.Migrations
                         {
                             Id = "E2",
                             AvailableTickets = 50,
-                            Date = new DateTime(2024, 12, 25, 15, 49, 56, 286, DateTimeKind.Utc).AddTicks(5023),
+                            Date = new DateTime(2024, 12, 25, 15, 26, 23, 989, DateTimeKind.Utc).AddTicks(6404),
                             Name = "Science Seminar",
                             TicketPrice = 25.0m
-                        },
-                        new
-                        {
-                            Id = "E3",
-                            AvailableTickets = 75,
-                            Date = new DateTime(2024, 12, 20, 15, 49, 56, 286, DateTimeKind.Utc).AddTicks(5028),
-                            Name = "Art Exhibition",
-                            TicketPrice = 20.0m
-                        },
-                        new
-                        {
-                            Id = "E4",
-                            AvailableTickets = 60,
-                            Date = new DateTime(2025, 1, 4, 15, 49, 56, 286, DateTimeKind.Utc).AddTicks(5030),
-                            Name = "Tech Workshop",
-                            TicketPrice = 30.0m
-                        },
-                        new
-                        {
-                            Id = "E5",
-                            AvailableTickets = 90,
-                            Date = new DateTime(2024, 12, 22, 15, 49, 56, 286, DateTimeKind.Utc).AddTicks(5079),
-                            Name = "Film Screening",
-                            TicketPrice = 15.0m
-                        },
-                        new
-                        {
-                            Id = "E6",
-                            AvailableTickets = 120,
-                            Date = new DateTime(2025, 1, 9, 15, 49, 56, 286, DateTimeKind.Utc).AddTicks(5081),
-                            Name = "Sports Gala",
-                            TicketPrice = 40.0m
-                        },
-                        new
-                        {
-                            Id = "E7",
-                            AvailableTickets = 150,
-                            Date = new DateTime(2025, 1, 14, 15, 49, 56, 286, DateTimeKind.Utc).AddTicks(5082),
-                            Name = "Music Festival",
-                            TicketPrice = 70.0m
-                        },
-                        new
-                        {
-                            Id = "E8",
-                            AvailableTickets = 40,
-                            Date = new DateTime(2024, 12, 27, 15, 49, 56, 286, DateTimeKind.Utc).AddTicks(5084),
-                            Name = "Literature Meetup",
-                            TicketPrice = 10.0m
-                        },
-                        new
-                        {
-                            Id = "E9",
-                            AvailableTickets = 80,
-                            Date = new DateTime(2025, 1, 2, 15, 49, 56, 286, DateTimeKind.Utc).AddTicks(5085),
-                            Name = "Business Conference",
-                            TicketPrice = 60.0m
-                        },
-                        new
-                        {
-                            Id = "E10",
-                            AvailableTickets = 55,
-                            Date = new DateTime(2025, 1, 6, 15, 49, 56, 286, DateTimeKind.Utc).AddTicks(5087),
-                            Name = "Charity Auction",
-                            TicketPrice = 35.0m
                         });
                 });
 

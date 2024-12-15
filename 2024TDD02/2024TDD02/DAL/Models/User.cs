@@ -11,8 +11,9 @@ namespace DAL.Models
     {
         public int Id { get; set; }
         public required string Name { get; set; }
-        public required string Email { get; set; }
         public decimal Balance { get; set; }
-
+        
+        [Required]
+        public required string ServiceCard { get; set; }
     }
 }
