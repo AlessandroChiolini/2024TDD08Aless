@@ -26,38 +26,48 @@ class Program
 
                 switch (choice)
                 {
-                    case "1":
+                    case "1": // List Available Events
                         Console.Clear();
-                        Console.WriteLine("Get User Copy Transactions");
+                        Console.WriteLine("List Available Events");
+                        await ExecuteCommandAsync(invoker, new ListEventsCommand(httpClient));
                         break;
 
-                    case "2":
+                    case "2": // Purchase Event Tickets
                         Console.Clear();
-                        Console.WriteLine("Process Copy Payment");
-                        Console.Write("Enter the number of copies (0.20$ per copy): ");
-                        if (int.TryParse(Console.ReadLine(), out int numberOfCopies))
-                        {
+                        Console.WriteLine("Purchase Event Tickets");
+                        Console.Write("Enter the Event ID: ");
+                        var eventId = Console.ReadLine();
 
+                        Console.Write("Enter the number of tickets to purchase: ");
+                        if (int.TryParse(Console.ReadLine(), out int ticketCount))
+                        {
+                            await ExecuteCommandAsync(invoker, new PurchaseTicketCommand(httpClient, userId, eventId, ticketCount));
                         }
                         else
                         {
-                            ShowErrorMessage("Invalid number of copies. Please enter a valid integer.");
+                            ShowErrorMessage("Invalid number of tickets. Please enter a valid integer.");
                         }
                         break;
 
-                    case "3":
+                    case "3": // View Purchased Tickets
                         Console.Clear();
-                        Console.WriteLine("Current Account Balance");
+                        Console.WriteLine("View Purchased Tickets");
+                        await ExecuteCommandAsync(invoker, new ViewTicketsCommand(httpClient, userId));
+                        break;
+
+                    case "4": // Get Account Balance
+                        Console.Clear();
+                        Console.WriteLine("Get Account Balance");
                         await ExecuteCommandAsync(invoker, new GetUserBalanceCommand(httpClient, userId));
                         break;
 
-                    case "4":
+                    case "5": // Add User Balance
                         Console.Clear();
                         Console.WriteLine("Add User Balance");
                         Console.Write("Enter the amount to add: ");
-                        if (decimal.TryParse(Console.ReadLine(), out decimal addAmount))
+                        if (decimal.TryParse(Console.ReadLine(), out decimal amount))
                         {
-                            await ExecuteCommandAsync(invoker, new AddUserBalanceCommand(httpClient, userId, addAmount));
+                            await ExecuteCommandAsync(invoker, new AddUserBalanceCommand(httpClient, userId, amount));
                         }
                         else
                         {
@@ -65,17 +75,19 @@ class Program
                         }
                         break;
 
-                    case "5":
-                        exit = true;
+                    case "6": // Exit
+                        Console.Clear();
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.WriteLine("Exiting the application. Goodbye!");
                         Console.ResetColor();
+                        exit = true;
                         break;
 
                     default:
-                        ShowErrorMessage("Invalid choice. Please enter 1, 2, 3, 4, or 5.");
+                        ShowErrorMessage("Invalid choice. Please enter a valid option.");
                         break;
                 }
+
             }
         }
         else
@@ -88,12 +100,14 @@ class Program
     {
         Console.Clear();
         Console.WriteLine("Choose an option:");
-        Console.WriteLine("1. Get User Copy Transactions");
-        Console.WriteLine("2. Process Copy Payment");
-        Console.WriteLine("3. Get Account Balance");
-        Console.WriteLine("4. Add User Balance");
-        Console.WriteLine("5. Exit");
-        Console.Write("Enter your choice (1, 2, 3, 4, or 5): ");
+        Console.WriteLine("1. List Available Events");
+        Console.WriteLine("2. Purchase Event Tickets");
+        Console.WriteLine("3. View Purchased Tickets");
+        Console.WriteLine("4. Get Account Balance");
+        Console.WriteLine("5. Add User Balance");
+        Console.WriteLine("6. Exit");
+        Console.Write("Enter your choice (1-6): ");
+
     }
 
     static async Task ExecuteCommandAsync(CommandInvoker invoker, ICommand command)

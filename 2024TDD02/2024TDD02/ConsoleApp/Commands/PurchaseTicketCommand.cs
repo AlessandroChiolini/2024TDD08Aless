@@ -6,17 +6,19 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp.Commands
 {
-    public class AddUserBalanceCommand : ICommand
+    public class PurchaseTicketCommand : ICommand
     {
         private readonly HttpClient _httpClient;
         private readonly int _userId;
-        private readonly decimal _amount;
+        private readonly string _eventId;
+        private readonly int _ticketCount;
 
-        public AddUserBalanceCommand(HttpClient httpClient, int userId, decimal amount)
+        public PurchaseTicketCommand(HttpClient httpClient, int userId, string eventId, int ticketCount)
         {
             _httpClient = httpClient;
             _userId = userId;
-            _amount = amount;
+            _eventId = eventId;
+            _ticketCount = ticketCount;
         }
 
         public async Task ExecuteAsync()
@@ -24,7 +26,8 @@ namespace ConsoleApp.Commands
             var payload = new
             {
                 UserId = _userId,
-                Amount = _amount
+                EventId = _eventId,
+                TicketCount = _ticketCount
             };
 
             var json = JsonSerializer.Serialize(payload);
@@ -32,25 +35,25 @@ namespace ConsoleApp.Commands
 
             try
             {
-                var response = await _httpClient.PostAsync("api/User/addbalance", content);
+                var response = await _httpClient.PostAsync("api/Tickets/purchase", content);
 
                 if (response.IsSuccessStatusCode)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($"Successfully added {_amount:C} to your balance.");
+                    Console.WriteLine("Tickets purchased successfully!");
                     Console.ResetColor();
                 }
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Failed to add balance. Please try again.");
+                    Console.WriteLine("Failed to purchase tickets. Please check your balance and ticket availability.");
                     Console.ResetColor();
                 }
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Error occurred while adding balance: {ex.Message}");
+                Console.WriteLine($"Error occurred while purchasing tickets: {ex.Message}");
                 Console.ResetColor();
             }
         }
