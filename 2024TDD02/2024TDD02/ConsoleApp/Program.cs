@@ -16,11 +16,19 @@ class Program
         Console.Write("Please enter your user ID: ");
         if (int.TryParse(Console.ReadLine(), out int userId))
         {
+            // Fetch user information
+            var user = await FetchUserByIdAsync(httpClient, userId);
+            if (user == null)
+            {
+                ShowErrorMessage("User not found. Please check the ID and try again.");
+                return;
+            }
+
             bool exit = false;
 
             while (!exit)
             {
-                ShowMenu();
+                ShowMenuWithWelcome(user.Name); // Show menu with the welcome message
 
                 var choice = Console.ReadLine();
 
@@ -87,7 +95,6 @@ class Program
                         ShowErrorMessage("Invalid choice. Please enter a valid option.");
                         break;
                 }
-
             }
         }
         else
@@ -96,9 +103,31 @@ class Program
         }
     }
 
-    static void ShowMenu()
+    static async Task<User> FetchUserByIdAsync(HttpClient httpClient, int userId)
+    {
+        try
+        {
+            var response = await httpClient.GetAsync($"api/User/{userId}");
+            if (response.IsSuccessStatusCode)
+            {
+                var user = await response.Content.ReadFromJsonAsync<User>();
+                return user;
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowErrorMessage($"Error fetching user details: {ex.Message}");
+        }
+        return null;
+    }
+
+    static void ShowMenuWithWelcome(string userName)
     {
         Console.Clear();
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine($"Welcome, {userName}!\n");
+        Console.ResetColor();
+
         Console.WriteLine("Choose an option:");
         Console.WriteLine("1. List Available Events");
         Console.WriteLine("2. Purchase Event Tickets");
@@ -107,7 +136,6 @@ class Program
         Console.WriteLine("5. Add User Balance");
         Console.WriteLine("6. Exit");
         Console.Write("Enter your choice (1-6): ");
-
     }
 
     static async Task ExecuteCommandAsync(CommandInvoker invoker, ICommand command)
@@ -130,4 +158,11 @@ class Program
         Console.WriteLine(message);
         Console.ResetColor();
     }
+}
+
+public class User
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public decimal Balance { get; set; }
 }

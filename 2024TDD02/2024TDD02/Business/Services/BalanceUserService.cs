@@ -8,6 +8,7 @@ namespace Business.Services
     {
         Task<decimal> GetUserBalanceAsync(int userId);
         Task AddBalanceAsync(int userId, decimal amount);
+        Task<User> GetUserByIdAsync(int userId);
 
     }
     public class UserBalanceService : IUserBalanceService
@@ -33,6 +34,12 @@ namespace Business.Services
                 user.Balance += amount;
                 await _userRepository.UpdateUserAsync(user);
             }
+        }
+
+        public async Task<User> GetUserByIdAsync(int userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            return user;
         }
     }
 }

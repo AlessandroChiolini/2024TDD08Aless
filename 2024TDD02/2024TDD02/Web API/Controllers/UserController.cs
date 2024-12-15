@@ -42,5 +42,24 @@ namespace Web_API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // New: Retrieve User Information by ID
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUserById(int userId)
+        {
+            try
+            {
+                var user = await _userBalanceService.GetUserByIdAsync(userId);
+                if (user == null)
+                {
+                    return NotFound($"User with ID {userId} not found.");
+                }
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error occurred: {ex.Message}");
+            }
+        }
     }
 }
