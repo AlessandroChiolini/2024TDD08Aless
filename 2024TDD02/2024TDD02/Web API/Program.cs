@@ -21,14 +21,12 @@ public partial class Program
 
         // Add repositories
         builder.Services.AddScoped<IUserRepository, UserRepository>();
-        builder.Services.AddScoped<ICopyTransactionRepository<CopyTransaction>, CopyTransactionRepository>();
 
         // Add Event Management Repositories
         builder.Services.AddScoped<IEventRepository, EventRepository>();
         builder.Services.AddScoped<IEventTicketRepository, EventTicketRepository>();
 
         // Add services
-        builder.Services.AddScoped<ICopyPaymentService, CopyPaymentService>();
         builder.Services.AddScoped<IUserBalanceService, UserBalanceService>();
 
         // Add Event Management Services

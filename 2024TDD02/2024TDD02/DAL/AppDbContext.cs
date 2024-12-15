@@ -5,7 +5,6 @@ namespace DAL.Databases
 {
     public class AppDbContext : DbContext
     {
-        public DbSet<CopyTransaction> CopyTransactions { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Event> Events { get; set; }               // DbSet for Events
         public DbSet<EventTicket> EventTickets { get; set; }   // DbSet for EventTickets
@@ -87,13 +86,6 @@ namespace DAL.Databases
             {
                 entity.HasKey(et => et.Id);
                 entity.Property(et => et.PurchaseDate).IsRequired(); // Required field
-            });
-
-            // Configure CopyTransaction entity
-            modelBuilder.Entity<CopyTransaction>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
             });
 
             // Seed initial data

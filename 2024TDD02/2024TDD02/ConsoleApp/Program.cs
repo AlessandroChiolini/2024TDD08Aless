@@ -29,7 +29,6 @@ class Program
                     case "1":
                         Console.Clear();
                         Console.WriteLine("Get User Copy Transactions");
-                        await ExecuteCommandAsync(invoker, new GetUserCopyTransactionsCommand(httpClient, userId));
                         break;
 
                     case "2":
@@ -38,7 +37,7 @@ class Program
                         Console.Write("Enter the number of copies (0.20$ per copy): ");
                         if (int.TryParse(Console.ReadLine(), out int numberOfCopies))
                         {
-                            await ExecuteCommandAsync(invoker, new ProcessCopyPaymentCommand(httpClient, userId, numberOfCopies));
+
                         }
                         else
                         {
