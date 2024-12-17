@@ -13,7 +13,7 @@ namespace ConsoleApp.Commands
 
         public ViewTicketsCommand(HttpClient httpClient, int userId)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _userId = userId;
         }
 
@@ -23,7 +23,7 @@ namespace ConsoleApp.Commands
             {
                 Console.WriteLine("Fetching your purchased tickets...");
 
-                // Correct endpoint to fetch user's tickets
+                // Send request to retrieve user's tickets
                 var response = await _httpClient.GetAsync($"api/EventTicket/user/{_userId}/tickets");
 
                 if (response.IsSuccessStatusCode)
@@ -41,17 +41,18 @@ namespace ConsoleApp.Commands
 
                     // Display user's tickets
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("Your Purchased Tickets:");
+                    Console.WriteLine("\nYour Purchased Tickets:");
                     Console.ResetColor();
 
                     foreach (var ticket in tickets)
                     {
-                        Console.WriteLine($"Event: {ticket.EventName}, Date: {ticket.EventDate:yyyy-MM-dd}, Quantity: {ticket.Quantity}");
+                        Console.WriteLine(
+                            $"Event ID: {ticket.EventId}, Event: {ticket.EventName}, Date: {ticket.EventDate:yyyy-MM-dd}, Quantity: {ticket.Quantity}");
                     }
                 }
                 else
                 {
-                    // Log response failure
+                    // Handle response failure
                     Console.ForegroundColor = ConsoleColor.Red;
                     var errorContent = await response.Content.ReadAsStringAsync();
                     Console.WriteLine("Failed to retrieve tickets. Please try again.");
@@ -61,6 +62,7 @@ namespace ConsoleApp.Commands
             }
             catch (Exception ex)
             {
+                // Catch and display errors
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Error occurred while retrieving tickets: {ex.Message}");
                 Console.ResetColor();
@@ -68,11 +70,12 @@ namespace ConsoleApp.Commands
         }
     }
 
-    // DTO class to match the API response structure
+    // DTO class to represent the ticket response
     public class TicketDto
     {
-        public string EventName { get; set; }
-        public DateTime EventDate { get; set; }
-        public int Quantity { get; set; }
+        public string EventId { get; set; }    // Added Event ID
+        public string EventName { get; set; }  // Event name
+        public DateTime EventDate { get; set; } // Event date
+        public int Quantity { get; set; }      // Ticket quantity
     }
 }

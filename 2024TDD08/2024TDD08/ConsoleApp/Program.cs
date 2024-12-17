@@ -1,7 +1,6 @@
 ﻿using Business;
 using ConsoleApp;
 using ConsoleApp.Commands;
-using DAL.Databases;
 using System.Net.Http.Json;
 
 class Program
@@ -75,7 +74,21 @@ class Program
                         Console.Write("Enter the amount to add: ");
                         if (decimal.TryParse(Console.ReadLine(), out decimal amount))
                         {
-                            await ExecuteCommandAsync(invoker, new AddUserBalanceCommand(httpClient, userId, amount));
+                            var response = await httpClient.PostAsJsonAsync(
+                                $"api/User/{userId}/balance/add", new { Amount = amount });
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var result = await response.Content.ReadAsStringAsync();
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.WriteLine("Balance updated successfully!");
+                                Console.WriteLine(result);
+                            }
+                            else
+                            {
+                                var error = await response.Content.ReadAsStringAsync();
+                                ShowErrorMessage($"Failed to add balance: {error}");
+                            }
                         }
                         else
                         {

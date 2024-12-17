@@ -54,6 +54,16 @@ namespace Business.Services
         {
             return _eventRepository.GetEventById(eventId);
         }
+
+        public bool PurchaseTicket(int userId, string eventId, int quantity, string serviceCard)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool CancelTicket(int userId, string eventId)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

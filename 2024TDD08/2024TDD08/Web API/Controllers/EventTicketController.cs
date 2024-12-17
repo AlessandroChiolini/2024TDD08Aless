@@ -106,6 +106,31 @@ namespace WebAPI.Controllers
 
             return Ok("Ticket purchased successfully!");
         }
+
+        [HttpGet("user/{userId}/tickets")]
+        public IActionResult GetUserTickets(int userId)
+        {
+            var tickets = _context.EventTickets
+                .Where(ticket => ticket.UserId == userId)
+                .Join(
+                    _context.Events,  // Join with Events table
+                    ticket => ticket.EventId,
+                    eventItem => eventItem.Id,
+                    (ticket, eventItem) => new
+                    {
+                        EventId = ticket.EventId,       // Include Event ID
+                        EventName = eventItem.Name,     // Event Name
+                        EventDate = eventItem.Date,     // Event Date
+                        Quantity = ticket.Quantity      // Ticket Quantity
+                    }
+                )
+                .ToList();
+
+            if (tickets == null || tickets.Count == 0)
+                return NotFound("No tickets found for this user.");
+
+            return Ok(tickets);
+        }
     }
 
     public class PurchaseRequest
