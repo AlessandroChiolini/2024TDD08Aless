@@ -14,9 +14,9 @@ namespace DAL.Tests.Repositories
 
         public UserRepositoryTests()
         {
-            // Set up in-memory database
+            // Create a unique in-memory database for each test
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: "TestDb")
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Unique database
                 .Options;
 
             _context = new AppDbContext(options);
@@ -78,21 +78,30 @@ namespace DAL.Tests.Repositories
         public async Task UpdateUserAsync_DoesNothing_WhenUserDoesNotExist()
         {
             // Arrange
-            var user = new User
+            var nonExistentUserId = 99; // Use an ID that does not exist in the database
+            var nonExistentUser = new User
             {
-                Id = 99, // Non-existent user
+                Id = nonExistentUserId,
                 Name = "Test User",
                 Balance = 500m,
                 ServiceCard = "TESTCARD123"
             };
 
+            // Ensure no entity with this ID exists in the context
+            var existingUser = await _context.Users.FindAsync(nonExistentUserId);
+            Assert.Null(existingUser);
+
+            // Detach any tracked entities with the same ID
+            _context.ChangeTracker.Clear();
+
             // Act
-            await _userRepository.UpdateUserAsync(user);
+            await _userRepository.UpdateUserAsync(nonExistentUser);
 
             // Assert
-            var updatedUser = await _userRepository.GetUserByIdAsync(user.Id);
-            Assert.Null(updatedUser); // User should not exist
+            var updatedUser = await _context.Users.FindAsync(nonExistentUserId);
+            Assert.Null(updatedUser); // Ensure the user was not added or modified
         }
+
 
         private void SeedDatabase()
         {

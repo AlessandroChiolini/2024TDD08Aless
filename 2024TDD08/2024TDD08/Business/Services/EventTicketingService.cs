@@ -19,28 +19,30 @@ namespace Business.Services
             _ticketRepository = ticketRepository;
         }
 
-        public bool PurchaseTicket(int userId, string eventId, int quantity)
+    public bool PurchaseTicket(int userId, string eventId, int quantity)
+    {
+        var eventEntity = _eventRepository.GetEventById(eventId);
+        if (eventEntity == null || eventEntity.AvailableTickets < quantity)
         {
-            var eventItem = _eventRepository.GetEventById(eventId);
-            if (eventItem == null || !eventItem.HasAvailableTickets(quantity))
-                return false;
-
-            if (eventItem.ReserveTickets(quantity))
-            {
-                _ticketRepository.AddTicket(new EventTicket
-                {
-                    Id = _ticketRepository.GetNextId(),
-                    UserId = userId,
-                    EventId = eventId,
-                    Quantity = quantity,
-                    PurchaseDate = DateTime.Now
-                });
-                return true;
-            }
             return false;
         }
 
-        public List<EventTicket> GetUserTickets(int userId)
+        eventEntity.AvailableTickets -= quantity;
+        _eventRepository.UpdateEvent(eventEntity);
+
+        var ticket = new EventTicket
+        {
+            Id = _ticketRepository.GetNextId(),
+            UserId = userId,
+            EventId = eventId,
+            Quantity = quantity
+        };
+
+        _ticketRepository.AddTicket(ticket);
+        return true;
+    }
+
+    public List<EventTicket> GetUserTickets(int userId)
         {
             return _ticketRepository.GetTicketsByUserId(userId);
         }

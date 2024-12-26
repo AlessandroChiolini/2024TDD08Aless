@@ -2,7 +2,6 @@
 using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,25 +13,23 @@ namespace WebAPI.Tests.Controllers
 {
     public class EventTicketControllerTests
     {
-        private readonly Mock<AppDbContext> _contextMock;
+        private readonly AppDbContext _context;
         private readonly EventTicketController _controller;
 
         public EventTicketControllerTests()
         {
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase("TestDb")
+                .UseInMemoryDatabase(Guid.NewGuid().ToString()) // Use a unique database name for each test
                 .Options;
 
-            var context = new AppDbContext(options);
-            _contextMock = new Mock<AppDbContext>();
-            _controller = new EventTicketController(context);
+            _context = new AppDbContext(options);
+            _controller = new EventTicketController(_context);
 
-            SeedData(context);
+            SeedData(_context);
         }
 
         private void SeedData(AppDbContext context)
         {
-            // Seed Users
             // Seed Users
             context.Users.AddRange(
                 new User { Id = 1, Name = "User One", Balance = 1000, ServiceCard = "CARD123" },

@@ -46,6 +46,7 @@ namespace Business.Tests.Services
 
             // Assert
             Assert.True(result);
+            Assert.Equal(8, mockEvent.AvailableTickets); // Ensure tickets were reserved
             _ticketRepositoryMock.Verify(repo => repo.AddTicket(It.IsAny<EventTicket>()), Times.Once);
             _eventRepositoryMock.Verify(repo => repo.UpdateEvent(mockEvent), Times.Once);
         }

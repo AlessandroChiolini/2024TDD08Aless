@@ -28,8 +28,16 @@ namespace DAL.Repositories
         }
         public async Task UpdateUserAsync(User user)
         {
-            _context.Users.Update(user);
+            var existingUser = await _context.Users.FindAsync(user.Id);
+            if (existingUser == null)
+            {
+                // Optionally, you can log this or handle it as needed
+                return;
+            }
+
+            _context.Entry(existingUser).CurrentValues.SetValues(user);
             await _context.SaveChangesAsync();
         }
+
     }
 }
