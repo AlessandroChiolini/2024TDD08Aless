@@ -107,6 +107,7 @@ namespace WebAPI.Controllers
             return Ok("Ticket purchased successfully!");
         }
 
+        // Retrieve tickets purchased by a user
         [HttpGet("user/{userId}/tickets")]
         public IActionResult GetUserTickets(int userId)
         {
@@ -130,6 +131,41 @@ namespace WebAPI.Controllers
                 return NotFound("No tickets found for this user.");
 
             return Ok(tickets);
+        }
+
+        // New Endpoint: Retrieve UserId and UserName of ticket buyers for a specific event
+        [HttpGet("{eventId}/buyers")]
+        public async Task<IActionResult> GetEventBuyers(string eventId)
+        {
+            try
+            {
+                var buyers = await _context.EventTickets
+                    .Where(ticket => ticket.EventId == eventId)
+                    .Join(
+                        _context.Users,              // Join with Users table
+                        ticket => ticket.UserId,     // Match UserId from tickets
+                        user => user.Id,             // Match Id from users
+                        (ticket, user) => new
+                        {
+                            UserId = user.Id,        // User's ID
+                            UserName = user.Name,    // User's Name
+                            Quantity = ticket.Quantity,
+                            PurchaseDate = ticket.PurchaseDate
+                        }
+                    )
+                    .ToListAsync();
+
+                if (buyers == null || buyers.Count == 0)
+                {
+                    return NotFound("No users have purchased tickets for this event.");
+                }
+
+                return Ok(buyers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while retrieving buyers.", Error = ex.Message });
+            }
         }
     }
 
