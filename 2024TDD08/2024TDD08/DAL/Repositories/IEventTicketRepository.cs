@@ -12,7 +12,8 @@ namespace DAL.Repositories
         int GetNextId();
         void AddTicket(EventTicket ticket);
         List<EventTicket> GetTicketsByUserId(int userId);
+        EventTicket GetTicketById(int ticketId);
+        void RemoveTicket(int ticketId);
     }
-
 
 }

@@ -23,7 +23,7 @@ namespace DAL.Tests.Repositories
                 new EventTicket { Id = 3, UserId = 1, EventId = "E3", Quantity = 3, PurchaseDate = System.DateTime.Now }
             };
 
-            // Add tickets to the private `_tickets` field using reflection (since it's not public)
+            // Add tickets to the private `_tickets` field using reflection
             var ticketsField = typeof(EventTicketRepository)
                 .GetField("_tickets", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             ticketsField?.SetValue(_ticketRepository, tickets);
@@ -81,6 +81,35 @@ namespace DAL.Tests.Repositories
 
             // Assert
             Assert.Empty(userTickets); // No tickets for this user
+        }
+
+        [Fact]
+        public void RemoveTicket_RemovesTicket_WhenTicketExists()
+        {
+            // Arrange
+            var ticketId = 1;
+
+            // Act
+            _ticketRepository.RemoveTicket(ticketId);
+
+            // Assert
+            var allTickets = GetAllTickets();
+            Assert.DoesNotContain(allTickets, t => t.Id == ticketId); // Ticket should be removed
+            Assert.Equal(2, allTickets.Count); // Total tickets should decrease
+        }
+
+        [Fact]
+        public void RemoveTicket_DoesNothing_WhenTicketDoesNotExist()
+        {
+            // Arrange
+            var nonExistentTicketId = 99;
+
+            // Act
+            _ticketRepository.RemoveTicket(nonExistentTicketId);
+
+            // Assert
+            var allTickets = GetAllTickets();
+            Assert.Equal(3, allTickets.Count); // Total tickets should remain the same
         }
 
         // Helper method to retrieve all tickets (for internal verification)

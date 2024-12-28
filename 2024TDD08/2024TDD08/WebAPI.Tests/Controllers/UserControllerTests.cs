@@ -21,48 +21,6 @@ namespace WebAPI.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetUserBalance_ReturnsCorrectBalance_WhenUserExists()
-        {
-            // Arrange
-            var userId = 1;
-            var expectedBalance = 500.50m;
-
-            _userBalanceServiceMock.Setup(s => s.GetUserBalanceAsync(userId))
-                                   .ReturnsAsync(expectedBalance);
-
-            // Act
-            var result = await _controller.GetUserBalance(userId);
-
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            var response = Assert.IsAssignableFrom<dynamic>(okResult.Value);
-            Assert.Equal(userId, response.UserId);
-            Assert.Equal(expectedBalance, response.Balance);
-
-            _userBalanceServiceMock.Verify(s => s.GetUserBalanceAsync(userId), Times.Once);
-        }
-
-        [Fact]
-        public async Task GetUserBalance_ReturnsBadRequest_OnException()
-        {
-            // Arrange
-            var userId = 1;
-
-            _userBalanceServiceMock.Setup(s => s.GetUserBalanceAsync(userId))
-                                   .ThrowsAsync(new Exception("Test exception"));
-
-            // Act
-            var result = await _controller.GetUserBalance(userId);
-
-            // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-            var response = Assert.IsAssignableFrom<dynamic>(badRequestResult.Value);
-            Assert.Equal("Failed to fetch balance", response.Message);
-
-            _userBalanceServiceMock.Verify(s => s.GetUserBalanceAsync(userId), Times.Once);
-        }
-
-        [Fact]
         public async Task AddBalance_ReturnsOk_WhenBalanceUpdatedSuccessfully()
         {
             // Arrange
@@ -82,8 +40,8 @@ namespace WebAPI.Tests.Controllers
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var response = Assert.IsAssignableFrom<dynamic>(okResult.Value);
-            Assert.Equal("Balance updated successfully", response.Message);
+            var response = Assert.IsType<BalanceUpdateResponse>(okResult.Value);
+            Assert.Equal("Balance updated successfully.", response.Message);
             Assert.Equal(updatedBalance, response.UpdatedBalance);
 
             _userBalanceServiceMock.Verify(s => s.AddBalanceAsync(userId, amount), Times.Once);
@@ -102,7 +60,7 @@ namespace WebAPI.Tests.Controllers
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-            var response = Assert.IsAssignableFrom<dynamic>(badRequestResult.Value);
+            var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
             Assert.Equal("Amount must be greater than 0.", response.Message);
 
             _userBalanceServiceMock.Verify(s => s.AddBalanceAsync(It.IsAny<int>(), It.IsAny<decimal>()), Times.Never);
@@ -125,10 +83,74 @@ namespace WebAPI.Tests.Controllers
             // Assert
             var serverErrorResult = Assert.IsType<ObjectResult>(result);
             Assert.Equal(500, serverErrorResult.StatusCode);
-            var response = Assert.IsAssignableFrom<dynamic>(serverErrorResult.Value);
-            Assert.Equal("Failed to update balance", response.Message);
+            var response = Assert.IsType<ErrorResponse>(serverErrorResult.Value);
+            Assert.Equal("Failed to update balance.", response.Message);
 
             _userBalanceServiceMock.Verify(s => s.AddBalanceAsync(userId, amount), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetUserBalance_ReturnsCorrectBalance_WhenUserExists()
+        {
+            // Arrange
+            var userId = 1;
+            var expectedBalance = 500.50m;
+
+            _userBalanceServiceMock.Setup(s => s.GetUserBalanceAsync(userId))
+                                   .ReturnsAsync(expectedBalance);
+
+            // Act
+            var result = await _controller.GetUserBalance(userId);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<UserBalanceResponse>(okResult.Value);
+            Assert.Equal(userId, response.UserId);
+            Assert.Equal(expectedBalance, response.Balance);
+
+            _userBalanceServiceMock.Verify(s => s.GetUserBalanceAsync(userId), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetUserBalance_ReturnsZero_WhenUserHasNoBalance()
+        {
+            // Arrange
+            var userId = 1;
+            var expectedBalance = 0m;
+
+            _userBalanceServiceMock.Setup(s => s.GetUserBalanceAsync(userId))
+                                   .ReturnsAsync(expectedBalance);
+
+            // Act
+            var result = await _controller.GetUserBalance(userId);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var response = Assert.IsType<UserBalanceResponse>(okResult.Value);
+            Assert.Equal(userId, response.UserId);
+            Assert.Equal(expectedBalance, response.Balance);
+
+            _userBalanceServiceMock.Verify(s => s.GetUserBalanceAsync(userId), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetUserBalance_ReturnsBadRequest_OnException()
+        {
+            // Arrange
+            var userId = 1;
+
+            _userBalanceServiceMock.Setup(s => s.GetUserBalanceAsync(userId))
+                                   .ThrowsAsync(new Exception("Test exception"));
+
+            // Act
+            var result = await _controller.GetUserBalance(userId);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
+            Assert.Equal("Failed to fetch balance.", response.Message);
+
+            _userBalanceServiceMock.Verify(s => s.GetUserBalanceAsync(userId), Times.Once);
         }
 
         [Fact]
@@ -160,15 +182,12 @@ namespace WebAPI.Tests.Controllers
             _userBalanceServiceMock.Verify(s => s.GetUserByIdAsync(userId), Times.Once);
         }
 
-
-
         [Fact]
         public async Task GetUserById_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
             var userId = 1;
 
-            // Use the correct type for the null value
             _userBalanceServiceMock.Setup(s => s.GetUserByIdAsync(userId))
                                    .ReturnsAsync((User)null);
 
@@ -177,7 +196,7 @@ namespace WebAPI.Tests.Controllers
 
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
-            var response = Assert.IsAssignableFrom<dynamic>(notFoundResult.Value);
+            var response = Assert.IsType<ErrorResponse>(notFoundResult.Value);
             Assert.Equal($"User with ID {userId} not found.", response.Message);
 
             _userBalanceServiceMock.Verify(s => s.GetUserByIdAsync(userId), Times.Once);

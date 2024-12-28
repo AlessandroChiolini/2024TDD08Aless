@@ -66,6 +66,27 @@ namespace Business.Services
         {
             throw new NotImplementedException();
         }
-    }
 
+        public bool RemoveTicket(int ticketId)
+        {
+            // Fetch the ticket from the repository
+            var ticket = _ticketRepository.GetTicketById(ticketId);
+            if (ticket == null)
+            {
+                return false; // Ticket not found
+            }
+
+            // Restore the event's available tickets
+            var eventEntity = _eventRepository.GetEventById(ticket.EventId);
+            if (eventEntity != null)
+            {
+                eventEntity.AvailableTickets += ticket.Quantity;
+                _eventRepository.UpdateEvent(eventEntity);
+            }
+
+            // Remove the ticket from the repository
+            _ticketRepository.RemoveTicket(ticketId);
+            return true;
+        }
+    }
 }

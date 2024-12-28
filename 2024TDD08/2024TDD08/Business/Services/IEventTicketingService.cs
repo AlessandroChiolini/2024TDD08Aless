@@ -19,5 +19,7 @@ namespace Business.Services
 
         // Cancels a ticket purchase for a user and restores availability
         bool CancelTicket(int userId, string eventId);
+
+        bool RemoveTicket(int ticketId);
     }
 }

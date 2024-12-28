@@ -22,11 +22,18 @@ namespace Web_API.Controllers
             try
             {
                 var balance = await _userBalanceService.GetUserBalanceAsync(userId);
-                return Ok(new { UserId = userId, Balance = balance });
+                return Ok(new UserBalanceResponse
+                {
+                    UserId = userId,
+                    Balance = balance
+                });
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(new { Message = "Failed to fetch balance", Error = ex.Message });
+                return BadRequest(new ErrorResponse
+                {
+                    Message = "Failed to fetch balance."
+                });
             }
         }
 
@@ -36,18 +43,29 @@ namespace Web_API.Controllers
         {
             if (request.Amount <= 0)
             {
-                return BadRequest(new { Message = "Amount must be greater than 0." });
+                return BadRequest(new ErrorResponse
+                {
+                    Message = "Amount must be greater than 0."
+                });
             }
 
             try
             {
                 await _userBalanceService.AddBalanceAsync(userId, request.Amount);
                 var updatedBalance = await _userBalanceService.GetUserBalanceAsync(userId);
-                return Ok(new { Message = "Balance updated successfully", UpdatedBalance = updatedBalance });
+
+                return Ok(new BalanceUpdateResponse
+                {
+                    Message = "Balance updated successfully.",
+                    UpdatedBalance = updatedBalance
+                });
             }
-            catch (Exception ex)
+            catch
             {
-                return StatusCode(500, new { Message = "Failed to update balance", Error = ex.Message });
+                return StatusCode(500, new ErrorResponse
+                {
+                    Message = "Failed to update balance."
+                });
             }
         }
 
@@ -60,13 +78,20 @@ namespace Web_API.Controllers
                 var user = await _userBalanceService.GetUserByIdAsync(userId);
                 if (user == null)
                 {
-                    return NotFound(new { Message = $"User with ID {userId} not found." });
+                    return NotFound(new ErrorResponse
+                    {
+                        Message = $"User with ID {userId} not found."
+                    });
                 }
+
                 return Ok(user);
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(new { Message = "Failed to retrieve user", Error = ex.Message });
+                return BadRequest(new ErrorResponse
+                {
+                    Message = "Failed to retrieve user."
+                });
             }
         }
     }
@@ -75,5 +100,22 @@ namespace Web_API.Controllers
     public class BalanceRequest
     {
         public decimal Amount { get; set; }
+    }
+
+    public class UserBalanceResponse
+    {
+        public int UserId { get; set; }
+        public decimal Balance { get; set; }
+    }
+
+    public class BalanceUpdateResponse
+    {
+        public string Message { get; set; }
+        public decimal UpdatedBalance { get; set; }
+    }
+
+    public class ErrorResponse
+    {
+        public string Message { get; set; }
     }
 }

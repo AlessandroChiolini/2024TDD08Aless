@@ -107,6 +107,13 @@ class Program
                     default:
                         ShowErrorMessage("Invalid choice. Please enter a valid option.");
                         break;
+
+                    case "7": // Remove a Ticket
+                        Console.Clear();
+                        Console.WriteLine("Remove a Purchased Ticket");
+                        await ExecuteCommandAsync(invoker, new RemoveTicketCommand(httpClient, userId));
+                        break;
+
                 }
             }
         }
@@ -148,7 +155,8 @@ class Program
         Console.WriteLine("4. Get Account Balance");
         Console.WriteLine("5. Add User Balance");
         Console.WriteLine("6. Exit");
-        Console.Write("Enter your choice (1-6): ");
+        Console.WriteLine("7. Remove a Purchased Ticket"); // New option
+        Console.Write("Enter your choice (1-7): ");
     }
 
     static async Task ExecuteCommandAsync(CommandInvoker invoker, ICommand command)

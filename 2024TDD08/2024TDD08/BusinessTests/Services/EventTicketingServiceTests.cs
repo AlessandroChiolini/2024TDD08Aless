@@ -191,5 +191,41 @@ namespace Business.Tests.Services
             Assert.Null(result);
             _eventRepositoryMock.Verify(repo => repo.GetEventById(eventId), Times.Once);
         }
+
+        [Fact]
+        public void RemoveTicket_ReturnsTrue_WhenTicketExists()
+        {
+            // Arrange
+            var eventId = "E1";
+            var ticket = new EventTicket { Id = 1, UserId = 1, EventId = eventId, Quantity = 2 };
+            var mockEvent = new Event { Id = eventId, Name = "Sample Event", AvailableTickets = 10 };
+
+            _ticketRepositoryMock.Setup(repo => repo.GetTicketById(It.IsAny<int>())).Returns(ticket);
+            _eventRepositoryMock.Setup(repo => repo.GetEventById(eventId)).Returns(mockEvent);
+
+            // Act
+            var result = _eventTicketingService.RemoveTicket(1);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(12, mockEvent.AvailableTickets); // Ensure tickets are restored
+            _ticketRepositoryMock.Verify(repo => repo.RemoveTicket(1), Times.Once);
+            _eventRepositoryMock.Verify(repo => repo.UpdateEvent(mockEvent), Times.Once);
+        }
+
+        [Fact]
+        public void RemoveTicket_ReturnsFalse_WhenTicketDoesNotExist()
+        {
+            // Arrange
+            _ticketRepositoryMock.Setup(repo => repo.GetTicketById(It.IsAny<int>())).Returns((EventTicket?)null);
+
+            // Act
+            var result = _eventTicketingService.RemoveTicket(1);
+
+            // Assert
+            Assert.False(result);
+            _ticketRepositoryMock.Verify(repo => repo.RemoveTicket(It.IsAny<int>()), Times.Never);
+        }
+
     }
 }

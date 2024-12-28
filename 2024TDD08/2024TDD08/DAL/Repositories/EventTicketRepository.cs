@@ -30,6 +30,21 @@ namespace DAL.Repositories
         {
             return _tickets.Where(t => t.UserId == userId).ToList();
         }
+
+        public EventTicket GetTicketById(int ticketId)
+        {
+            return _tickets.FirstOrDefault(t => t.Id == ticketId);
+        }
+
+        public void RemoveTicket(int ticketId)
+        {
+            var ticket = _tickets.FirstOrDefault(t => t.Id == ticketId);
+            if (ticket != null)
+            {
+                _tickets.Remove(ticket);
+            }
+        }
     }
+
 
 }

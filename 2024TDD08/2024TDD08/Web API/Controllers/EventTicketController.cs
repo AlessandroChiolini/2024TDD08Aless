@@ -167,6 +167,33 @@ namespace WebAPI.Controllers
                 return StatusCode(500, new { Message = "An error occurred while retrieving buyers.", Error = ex.Message });
             }
         }
+
+        [HttpDelete("event/{eventId}")]
+        public async Task<IActionResult> RemoveTicket(string eventId)
+        {
+            // Check if the ticket exists for the given event
+            var ticket = await _context.EventTickets.FirstOrDefaultAsync(t => t.EventId == eventId);
+            if (ticket == null)
+            {
+                return NotFound(new ErrorResponse { Message = "Ticket not found for the specified event." });
+            }
+
+            // Retrieve the event details
+            var eventDetails = await _context.Events.FirstOrDefaultAsync(e => e.Id == eventId);
+            if (eventDetails != null)
+            {
+                // Update available tickets for the event
+                eventDetails.AvailableTickets += ticket.Quantity;
+                _context.Events.Update(eventDetails);
+            }
+
+            // Remove the ticket
+            _context.EventTickets.Remove(ticket);
+            await _context.SaveChangesAsync();
+
+            return Ok(new RemoveTicketResponse { Message = "Ticket removed successfully." });
+        }
+
     }
 
     public class PurchaseRequest
@@ -174,5 +201,16 @@ namespace WebAPI.Controllers
         public int UserId { get; set; }
         public string EventId { get; set; }
         public int Quantity { get; set; }
+    }
+
+    // DTOs for responses
+    public class RemoveTicketResponse
+    {
+        public string Message { get; set; }
+    }
+
+    public class ErrorResponse
+    {
+        public string Message { get; set; }
     }
 }
