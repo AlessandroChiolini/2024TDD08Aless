@@ -96,7 +96,13 @@ class Program
                         }
                         break;
 
-                    case "6": // Exit
+                    case "6": // Remove a Ticket
+                        Console.Clear();
+                        Console.WriteLine("Remove a Purchased Ticket");
+                        await ExecuteCommandAsync(invoker, new RemoveTicketCommand(httpClient, userId));
+                        break;
+
+                    case "7": // Exit
                         Console.Clear();
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.WriteLine("Exiting the application. Goodbye!");
@@ -106,12 +112,6 @@ class Program
 
                     default:
                         ShowErrorMessage("Invalid choice. Please enter a valid option.");
-                        break;
-
-                    case "7": // Remove a Ticket
-                        Console.Clear();
-                        Console.WriteLine("Remove a Purchased Ticket");
-                        await ExecuteCommandAsync(invoker, new RemoveTicketCommand(httpClient, userId));
                         break;
 
                 }
@@ -154,8 +154,8 @@ class Program
         Console.WriteLine("3. View Purchased Tickets");
         Console.WriteLine("4. Get Account Balance");
         Console.WriteLine("5. Add User Balance");
-        Console.WriteLine("6. Exit");
-        Console.WriteLine("7. Remove a Purchased Ticket"); // New option
+        Console.WriteLine("6. Remove a Purchased Ticket");
+        Console.WriteLine("7. Exit");
         Console.Write("Enter your choice (1-7): ");
     }
 
