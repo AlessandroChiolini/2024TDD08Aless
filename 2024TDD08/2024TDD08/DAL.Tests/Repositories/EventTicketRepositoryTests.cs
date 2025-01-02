@@ -77,10 +77,10 @@ namespace DAL.Tests.Repositories
         public void GetTicketsByUserId_ReturnsEmptyList_WhenUserHasNoTickets()
         {
             // Act
-            var userTickets = _ticketRepository.GetTicketsByUserId(99); // Non-existent user
+            var userTickets = _ticketRepository.GetTicketsByUserId(99);
 
             // Assert
-            Assert.Empty(userTickets); // No tickets for this user
+            Assert.Empty(userTickets);
         }
 
         [Fact]
@@ -109,7 +109,7 @@ namespace DAL.Tests.Repositories
 
             // Assert
             var allTickets = GetAllTickets();
-            Assert.Equal(3, allTickets.Count); // Total tickets should remain the same
+            Assert.Equal(3, allTickets.Count);
         }
 
         // Helper method to retrieve all tickets (for internal verification)
