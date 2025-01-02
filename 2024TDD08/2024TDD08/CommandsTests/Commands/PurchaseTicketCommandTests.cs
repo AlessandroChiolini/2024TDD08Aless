@@ -202,6 +202,215 @@ namespace ConsoleApp.Tests.Commands
                 ItExpr.IsAny<CancellationToken>());
         }
 
+        [Fact]
+        public async Task ExecuteAsync_HandlesEventDetailsSuccessfully_WhenEventExists()
+        {
+            // Arrange
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            var userId = 1;
+            var eventId = "E1";
+            var ticketCount = 2;
+
+            // Mock event details fetch
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Get &&
+                        req.RequestUri == new Uri($"{BaseUri}api/EventTicket/events")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(new List<EventDto>
+                    {
+                new EventDto { Id = eventId, Name = "Concert", TicketPrice = 50.0m, AvailableTickets = 100 }
+                    }))
+                });
+
+            // Mock successful ticket purchase
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("api/EventTicket/purchase")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
+
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
+            {
+                BaseAddress = new Uri(BaseUri)
+            };
+
+            var command = new PurchaseTicketCommand(httpClient, userId, eventId, ticketCount);
+
+            // Act
+            await command.ExecuteAsync();
+
+            // Assert
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get &&
+                    req.RequestUri == new Uri($"{BaseUri}api/EventTicket/events")),
+                ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_HandlesException_WhenFetchingEventDetailsFails()
+        {
+            // Arrange
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            var userId = 1;
+            var eventId = "E1";
+            var ticketCount = 2;
+
+            // Simulate a network error during event details fetch
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Get &&
+                        req.RequestUri == new Uri($"{BaseUri}api/EventTicket/events")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ThrowsAsync(new HttpRequestException("Network error"));
+
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
+            {
+                BaseAddress = new Uri(BaseUri)
+            };
+
+            var command = new PurchaseTicketCommand(httpClient, userId, eventId, ticketCount);
+
+            // Act
+            await command.ExecuteAsync();
+
+            // Assert
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get &&
+                    req.RequestUri == new Uri($"{BaseUri}api/EventTicket/events")),
+                ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_HandlesEmptyEventList_WhenNoEventsExist()
+        {
+            // Arrange
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            var userId = 1;
+            var eventId = "E1";
+            var ticketCount = 2;
+
+            // Simulate an empty event list response
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Get &&
+                        req.RequestUri == new Uri($"{BaseUri}api/EventTicket/events")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("[]")
+                });
+
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
+            {
+                BaseAddress = new Uri(BaseUri)
+            };
+
+            var command = new PurchaseTicketCommand(httpClient, userId, eventId, ticketCount);
+
+            // Act
+            await command.ExecuteAsync();
+
+            // Assert
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get &&
+                    req.RequestUri == new Uri($"{BaseUri}api/EventTicket/events")),
+                ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_PrintsErrorMessage_WhenExceptionIsThrown()
+        {
+            // Arrange
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            var userId = 1;
+            var eventId = "E1";
+            var ticketCount = 2;
+
+            // Mock event details fetch
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Get &&
+                        req.RequestUri == new Uri($"{BaseUri}api/EventTicket/events")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(new List<EventDto>
+                    {
+                new EventDto { Id = eventId, Name = "Concert", TicketPrice = 50.0m, AvailableTickets = 100 }
+                    }))
+                });
+
+            // Mock POST request to throw an exception
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Post &&
+                        req.RequestUri.ToString().Contains("api/EventTicket/purchase")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ThrowsAsync(new HttpRequestException("Simulated network error during ticket purchase"));
+
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
+            {
+                BaseAddress = new Uri(BaseUri)
+            };
+
+            var command = new PurchaseTicketCommand(httpClient, userId, eventId, ticketCount);
+
+            // Act
+            await command.ExecuteAsync();
+
+            // Assert
+            // Verify that the GET request for event details was made
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get &&
+                    req.RequestUri == new Uri($"{BaseUri}api/EventTicket/events")),
+                ItExpr.IsAny<CancellationToken>());
+
+            // Verify that the POST request was attempted and resulted in an exception
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Post &&
+                    req.RequestUri.ToString().Contains("api/EventTicket/purchase")),
+                ItExpr.IsAny<CancellationToken>());
+        }
+
+
+
         // Helper method to verify the request content
         private bool VerifyRequestContent(HttpContent content, string expectedPayload)
         {

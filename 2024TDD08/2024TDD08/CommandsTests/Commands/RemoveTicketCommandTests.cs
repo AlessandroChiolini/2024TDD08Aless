@@ -17,12 +17,11 @@ namespace ConsoleApp.Tests.Commands
         private const string BaseAddress = "https://localhost:7249/";
 
         [Fact]
-        public async Task ExecuteAsync_DisplaysSuccessMessage_WhenTicketIsRemoved()
+        public async Task ExecuteAsync_DisplaysError_WhenEventIdIsEmpty()
         {
             // Arrange
             var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
             var userId = 1;
-            var eventId = "E1";
 
             var httpClient = new HttpClient(mockHttpMessageHandler.Object)
             {
@@ -31,32 +30,25 @@ namespace ConsoleApp.Tests.Commands
 
             var command = new RemoveTicketCommand(httpClient, userId);
 
-            mockHttpMessageHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req =>
-                        req.Method == HttpMethod.Delete &&
-                        req.RequestUri == new Uri(httpClient.BaseAddress + $"api/EventTicket/event/{eventId}")),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent("{\"Message\":\"Ticket removed successfully!\"}")
-                });
-
-            Console.SetIn(new System.IO.StringReader(eventId));
+            Console.SetIn(new System.IO.StringReader("")); // Simulate empty Event ID
 
             // Act
             await command.ExecuteAsync();
+
+            // Assert
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Never(),
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>());
         }
 
         [Fact]
-        public async Task ExecuteAsync_DisplaysErrorMessage_WhenTicketRemovalFails()
+        public async Task ExecuteAsync_DisplaysError_WhenFetchingTicketsFails()
         {
             // Arrange
             var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
             var userId = 1;
-            var eventId = "E1";
 
             var httpClient = new HttpClient(mockHttpMessageHandler.Object)
             {
@@ -65,24 +57,37 @@ namespace ConsoleApp.Tests.Commands
 
             var command = new RemoveTicketCommand(httpClient, userId);
 
+            // Simulate an exception when fetching tickets
             mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(req =>
-                        req.Method == HttpMethod.Delete &&
-                        req.RequestUri == new Uri(httpClient.BaseAddress + $"api/EventTicket/event/{eventId}")),
+                        req.Method == HttpMethod.Get &&
+                        req.RequestUri.ToString().Contains($"api/EventTicket/user/{userId}/tickets")),
                     ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.InternalServerError)
                 {
-                    Content = new StringContent("{\"Message\":\"Failed to remove ticket.\"}")
+                    Content = new StringContent("Internal Server Error")
                 });
 
-            Console.SetIn(new System.IO.StringReader(eventId));
+            // Simulate valid Event ID input to ensure the flow proceeds to fetch tickets
+            Console.SetIn(new System.IO.StringReader("E1"));
 
             // Act
             await command.ExecuteAsync();
+
+            // Assert
+            // Verify that the GET request was made to fetch tickets
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get &&
+                    req.RequestUri.ToString().Contains($"api/EventTicket/user/{userId}/tickets")),
+                ItExpr.IsAny<CancellationToken>());
         }
+
 
         [Fact]
         public async Task ExecuteAsync_DisplaysWarning_WhenNoTicketsFound()
@@ -104,30 +109,35 @@ namespace ConsoleApp.Tests.Commands
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Get &&
-                        req.RequestUri == new Uri(httpClient.BaseAddress + $"api/EventTicket/user/{userId}/tickets")),
+                        req.RequestUri.ToString().Contains($"api/EventTicket/user/{userId}/tickets")),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new StringContent(JsonSerializer.Serialize(new List<UserTicketDto>()))
+                    Content = new StringContent("[]") // No tickets
                 });
+
+            Console.SetIn(new System.IO.StringReader("E1"));
 
             // Act
             await command.ExecuteAsync();
+
+            // Assert
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get &&
+                    req.RequestUri.ToString().Contains($"api/EventTicket/user/{userId}/tickets")),
+                ItExpr.IsAny<CancellationToken>());
         }
 
         [Fact]
-        public async Task ExecuteAsync_DisplaysError_WhenFetchingTicketsFails()
+        public async Task ExecuteAsync_RemovesTicket_WhenValidEventIdProvided()
         {
             // Arrange
             var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
             var userId = 1;
-
-            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
-            {
-                BaseAddress = new Uri(BaseAddress)
-            };
-
-            var command = new RemoveTicketCommand(httpClient, userId);
+            var eventId = "E1";
 
             mockHttpMessageHandler
                 .Protected()
@@ -135,49 +145,28 @@ namespace ConsoleApp.Tests.Commands
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Get &&
-                        req.RequestUri == new Uri(httpClient.BaseAddress + $"api/EventTicket/user/{userId}/tickets")),
+                        req.RequestUri.ToString().Contains($"api/EventTicket/user/{userId}/tickets")),
                     ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new StringContent("Internal Server Error")
+                    Content = new StringContent(JsonSerializer.Serialize(new List<UserTicketDto>
+                    {
+                        new UserTicketDto { TicketId = 1, EventId = eventId, EventName = "Concert", Quantity = 1 }
+                    }))
                 });
-
-            // Act
-            await command.ExecuteAsync();
-        }
-
-        [Fact]
-        public async Task ExecuteAsync_DisplaysError_WhenNetworkFails()
-        {
-            // Arrange
-            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
-            var userId = 1;
-
-            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
-            {
-                BaseAddress = new Uri(BaseAddress)
-            };
-
-            var command = new RemoveTicketCommand(httpClient, userId);
 
             mockHttpMessageHandler
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Delete &&
+                        req.RequestUri.ToString().Contains($"api/EventTicket/event/{eventId}")),
                     ItExpr.IsAny<CancellationToken>())
-                .ThrowsAsync(new HttpRequestException("Network failure"));
-
-            // Act
-            await command.ExecuteAsync();
-        }
-
-        [Fact]
-        public async Task ExecuteAsync_DisplaysError_WhenEventIdIsInvalid()
-        {
-            // Arrange
-            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
-            var userId = 1;
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("Ticket removed successfully")
+                });
 
             var httpClient = new HttpClient(mockHttpMessageHandler.Object)
             {
@@ -186,29 +175,151 @@ namespace ConsoleApp.Tests.Commands
 
             var command = new RemoveTicketCommand(httpClient, userId);
 
-            Console.SetIn(new System.IO.StringReader(string.Empty)); // Simulate invalid Event ID
+            Console.SetIn(new System.IO.StringReader(eventId));
 
             // Act
             await command.ExecuteAsync();
+
+            // Assert
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Delete &&
+                    req.RequestUri.ToString().Contains($"api/EventTicket/event/{eventId}")),
+                ItExpr.IsAny<CancellationToken>());
         }
 
         [Fact]
-        public void UserTicketDto_CorrectlyMapsProperties()
+        public async Task ExecuteAsync_HandlesException_WhenDeletingTicketThrows()
         {
             // Arrange
-            var ticket = new UserTicketDto
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            var userId = 1;
+            var eventId = "E1";
+
+            // Mock the GET request to fetch tickets successfully
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Get &&
+                        req.RequestUri.ToString().Contains($"api/EventTicket/user/{userId}/tickets")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(new List<UserTicketDto>
+                    {
+                new UserTicketDto { TicketId = 1, EventId = eventId, EventName = "Concert", Quantity = 1 }
+                    }))
+                });
+
+            // Mock the DELETE request to throw an exception
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Delete &&
+                        req.RequestUri.ToString().Contains($"api/EventTicket/event/{eventId}")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ThrowsAsync(new HttpRequestException("Network failure during ticket removal"));
+
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
             {
-                TicketId = 1,
-                EventId = "E1",
-                EventName = "Sample Event",
-                Quantity = 3
+                BaseAddress = new Uri(BaseAddress)
             };
 
+            var command = new RemoveTicketCommand(httpClient, userId);
+
+            // Simulate valid Event ID input
+            Console.SetIn(new System.IO.StringReader(eventId));
+
+            // Act
+            await command.ExecuteAsync();
+
             // Assert
-            Assert.Equal(1, ticket.TicketId);
-            Assert.Equal("E1", ticket.EventId);
-            Assert.Equal("Sample Event", ticket.EventName);
-            Assert.Equal(3, ticket.Quantity);
+            // Verify that the DELETE request was made for the valid Event ID
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Delete &&
+                    req.RequestUri.ToString().Contains($"api/EventTicket/event/{eventId}")),
+                ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_DisplaysError_WhenDeleteRequestFails()
+        {
+            // Arrange
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            var userId = 1;
+            var eventId = "E1";
+
+            // Mock the GET request to fetch tickets successfully
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Get &&
+                        req.RequestUri.ToString().Contains($"api/EventTicket/user/{userId}/tickets")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonSerializer.Serialize(new List<UserTicketDto>
+                    {
+                new UserTicketDto { TicketId = 1, EventId = eventId, EventName = "Concert", Quantity = 1 }
+                    }))
+                });
+
+            // Mock the DELETE request to fail
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Delete &&
+                        req.RequestUri.ToString().Contains($"api/EventTicket/event/{eventId}")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent("Failed to remove ticket.")
+                });
+
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
+            {
+                BaseAddress = new Uri(BaseAddress)
+            };
+
+            var command = new RemoveTicketCommand(httpClient, userId);
+
+            // Simulate valid Event ID input
+            Console.SetIn(new System.IO.StringReader(eventId));
+
+            // Act
+            await command.ExecuteAsync();
+
+            // Assert
+            // Verify that the DELETE request was made
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Delete &&
+                    req.RequestUri.ToString().Contains($"api/EventTicket/event/{eventId}")),
+                ItExpr.IsAny<CancellationToken>());
+
+            // Assert that the GET request was made to fetch tickets
+            mockHttpMessageHandler.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get &&
+                    req.RequestUri.ToString().Contains($"api/EventTicket/user/{userId}/tickets")),
+                ItExpr.IsAny<CancellationToken>());
         }
     }
 }

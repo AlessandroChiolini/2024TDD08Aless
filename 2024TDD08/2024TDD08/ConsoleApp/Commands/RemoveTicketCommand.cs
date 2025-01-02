@@ -21,6 +21,18 @@ namespace ConsoleApp.Commands
         {
             try
             {
+                // Prompt the user for an Event ID to remove first
+                Console.Write("\nEnter the Event ID to remove: ");
+                var eventId = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(eventId))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Invalid Event ID. Please enter a valid value.");
+                    Console.ResetColor();
+                    return;
+                }
+
                 Console.WriteLine("Fetching your purchased tickets...");
 
                 // Fetch user's purchased tickets
@@ -55,33 +67,21 @@ namespace ConsoleApp.Commands
                         $"Event ID: {ticket.EventId}, Event: {ticket.EventName}, Quantity: {ticket.Quantity}");
                 }
 
-                // Prompt the user for an Event ID to remove
-                Console.Write("\nEnter the Event ID to remove: ");
-                var eventId = Console.ReadLine();
+                Console.WriteLine("Processing your ticket removal...");
 
-                if (!string.IsNullOrEmpty(eventId))
+                // Send DELETE request to remove the ticket using EventId
+                var deleteResponse = await _httpClient.DeleteAsync($"api/EventTicket/event/{eventId}");
+                if (deleteResponse.IsSuccessStatusCode)
                 {
-                    Console.WriteLine("Processing your ticket removal...");
-
-                    // Send DELETE request to remove the ticket using EventId
-                    var deleteResponse = await _httpClient.DeleteAsync($"api/EventTicket/event/{eventId}");
-                    if (deleteResponse.IsSuccessStatusCode)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("Ticket removed successfully!");
-                    }
-                    else
-                    {
-                        var errorContent = await deleteResponse.Content.ReadAsStringAsync();
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Failed to remove the ticket.");
-                        Console.WriteLine($"Error Details: {deleteResponse.StatusCode}, {errorContent}");
-                    }
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Ticket removed successfully!");
                 }
                 else
                 {
+                    var errorContent = await deleteResponse.Content.ReadAsStringAsync();
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Invalid Event ID. Please enter a valid value.");
+                    Console.WriteLine("Failed to remove the ticket.");
+                    Console.WriteLine($"Error Details: {deleteResponse.StatusCode}, {errorContent}");
                 }
 
                 Console.ResetColor();
@@ -93,7 +93,6 @@ namespace ConsoleApp.Commands
                 Console.ResetColor();
             }
         }
-
     }
 
     // Updated DTO class for Ticket

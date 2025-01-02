@@ -1,4 +1,5 @@
 ﻿using System;
+using DAL.Models;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -68,14 +69,5 @@ namespace ConsoleApp.Commands
                 Console.ResetColor();
             }
         }
-    }
-
-    // DTO class to represent the ticket response
-    public class TicketDto
-    {
-        public string EventId { get; set; }    // Added Event ID
-        public string EventName { get; set; }  // Event name
-        public DateTime EventDate { get; set; } // Event date
-        public int Quantity { get; set; }      // Ticket quantity
     }
 }
