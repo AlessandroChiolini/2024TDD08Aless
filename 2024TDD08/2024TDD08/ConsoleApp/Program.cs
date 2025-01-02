@@ -1,4 +1,5 @@
 ﻿using Business;
+using DAL.Models;
 using ConsoleApp;
 using ConsoleApp.Commands;
 using System.Net.Http.Json;
@@ -181,9 +182,3 @@ class Program
     }
 }
 
-public class User
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public decimal Balance { get; set; }
-}

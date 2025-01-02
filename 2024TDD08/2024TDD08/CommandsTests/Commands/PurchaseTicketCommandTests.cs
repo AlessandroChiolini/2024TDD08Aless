@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +24,13 @@ namespace ConsoleApp.Tests.Commands
             var userId = 1;
             var eventId = "E1";
             var ticketCount = 2;
+            var expectedPayload = JsonSerializer.Serialize(new
+            {
+                UserId = userId,
+                EventId = eventId,
+                Quantity = ticketCount
+            });
+
             var mockEvent = new EventDto { Id = eventId, Name = "Concert", TicketPrice = 50.0m, AvailableTickets = 100 };
             var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
 
@@ -50,7 +56,8 @@ namespace ConsoleApp.Tests.Commands
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(req =>
                         req.Method == HttpMethod.Post &&
-                        req.RequestUri == new Uri($"{BaseUri}api/EventTicket/purchase")),
+                        req.RequestUri == new Uri($"{BaseUri}api/EventTicket/purchase") &&
+                        VerifyRequestContent(req.Content, expectedPayload)),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(new HttpResponseMessage
                 {
@@ -73,7 +80,7 @@ namespace ConsoleApp.Tests.Commands
                 ItExpr.Is<HttpRequestMessage>(req =>
                     req.Method == HttpMethod.Post &&
                     req.RequestUri == new Uri($"{BaseUri}api/EventTicket/purchase") &&
-                    req.Content.ReadAsStringAsync().Result.Contains(eventId)),
+                    VerifyRequestContent(req.Content, expectedPayload)),
                 ItExpr.IsAny<CancellationToken>());
 
             mockHttpMessageHandler.Protected().Verify(
@@ -193,6 +200,13 @@ namespace ConsoleApp.Tests.Commands
                     req.Method == HttpMethod.Post &&
                     req.RequestUri == new Uri($"{BaseUri}api/EventTicket/purchase")),
                 ItExpr.IsAny<CancellationToken>());
+        }
+
+        // Helper method to verify the request content
+        private bool VerifyRequestContent(HttpContent content, string expectedPayload)
+        {
+            var actualPayload = content.ReadAsStringAsync().Result;
+            return actualPayload == expectedPayload;
         }
     }
 }

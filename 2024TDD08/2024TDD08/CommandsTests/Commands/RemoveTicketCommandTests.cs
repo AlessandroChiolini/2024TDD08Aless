@@ -44,11 +44,10 @@ namespace ConsoleApp.Tests.Commands
                     Content = new StringContent("{\"Message\":\"Ticket removed successfully!\"}")
                 });
 
+            Console.SetIn(new System.IO.StringReader(eventId));
+
             // Act
             await command.ExecuteAsync();
-
-            // Assert
-            // Add assertions to mock Console output if needed
         }
 
         [Fact]
@@ -79,45 +78,10 @@ namespace ConsoleApp.Tests.Commands
                     Content = new StringContent("{\"Message\":\"Failed to remove ticket.\"}")
                 });
 
-            // Act
-            await command.ExecuteAsync();
-
-            // Assert
-            // Add assertions to mock Console output if needed
-        }
-
-        [Fact]
-        public async Task ExecuteAsync_DisplaysError_WhenFetchingTicketsFails()
-        {
-            // Arrange
-            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
-            var userId = 1;
-
-            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
-            {
-                BaseAddress = new Uri(BaseAddress)
-            };
-
-            var command = new RemoveTicketCommand(httpClient, userId);
-
-            mockHttpMessageHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req =>
-                        req.Method == HttpMethod.Get &&
-                        req.RequestUri == new Uri(httpClient.BaseAddress + $"api/EventTicket/user/{userId}/tickets")),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent("Internal Server Error")
-                });
+            Console.SetIn(new System.IO.StringReader(eventId));
 
             // Act
             await command.ExecuteAsync();
-
-            // Assert
-            // Add assertions to mock Console output if needed
         }
 
         [Fact]
@@ -149,9 +113,37 @@ namespace ConsoleApp.Tests.Commands
 
             // Act
             await command.ExecuteAsync();
+        }
 
-            // Assert
-            // Add assertions to mock Console output if needed
+        [Fact]
+        public async Task ExecuteAsync_DisplaysError_WhenFetchingTicketsFails()
+        {
+            // Arrange
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            var userId = 1;
+
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
+            {
+                BaseAddress = new Uri(BaseAddress)
+            };
+
+            var command = new RemoveTicketCommand(httpClient, userId);
+
+            mockHttpMessageHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req =>
+                        req.Method == HttpMethod.Get &&
+                        req.RequestUri == new Uri(httpClient.BaseAddress + $"api/EventTicket/user/{userId}/tickets")),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent("Internal Server Error")
+                });
+
+            // Act
+            await command.ExecuteAsync();
         }
 
         [Fact]
@@ -178,9 +170,45 @@ namespace ConsoleApp.Tests.Commands
 
             // Act
             await command.ExecuteAsync();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_DisplaysError_WhenEventIdIsInvalid()
+        {
+            // Arrange
+            var mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            var userId = 1;
+
+            var httpClient = new HttpClient(mockHttpMessageHandler.Object)
+            {
+                BaseAddress = new Uri(BaseAddress)
+            };
+
+            var command = new RemoveTicketCommand(httpClient, userId);
+
+            Console.SetIn(new System.IO.StringReader(string.Empty)); // Simulate invalid Event ID
+
+            // Act
+            await command.ExecuteAsync();
+        }
+
+        [Fact]
+        public void UserTicketDto_CorrectlyMapsProperties()
+        {
+            // Arrange
+            var ticket = new UserTicketDto
+            {
+                TicketId = 1,
+                EventId = "E1",
+                EventName = "Sample Event",
+                Quantity = 3
+            };
 
             // Assert
-            // Add assertions to mock Console output if needed
+            Assert.Equal(1, ticket.TicketId);
+            Assert.Equal("E1", ticket.EventId);
+            Assert.Equal("Sample Event", ticket.EventName);
+            Assert.Equal(3, ticket.Quantity);
         }
     }
 }
