@@ -30,7 +30,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void GetEventById_ReturnsCorrectEvent_WhenEventExists()
+        public void GetEventById_ReturnsCorrectEvent_WhenExistingEvent()
         {
             // Act
             var eventItem = _eventRepository.GetEventById("E1");
@@ -42,7 +42,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void GetEventById_ReturnsNull_WhenEventDoesNotExist()
+        public void GetEventById_ReturnsNull_WhenNonExistingEvent()
         {
             // Act
             var eventItem = _eventRepository.GetEventById("E999");
@@ -52,7 +52,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void GetAvailableEvents_ReturnsOnlyEventsWithTickets()
+        public void GetAvailableEvents_ReturnsOnlyEventsWithTickets_WhenAvailableTickets()
         {
             // Act
             var availableEvents = _eventRepository.GetAvailableEvents();
@@ -63,7 +63,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void UpdateEvent_UpdatesEventDetailsCorrectly()
+        public void UpdateEvent_UpdatesEventDetailsCorrectly_WhenExistingEvent()
         {
             // Arrange
             var updatedEvent = new Event
@@ -86,7 +86,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void UpdateEvent_DoesNothing_WhenEventDoesNotExist()
+        public void UpdateEvent_DoesNothing_WhenNonExistingEvent()
         {
             // Arrange
             var nonExistentEvent = new Event

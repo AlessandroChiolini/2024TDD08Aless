@@ -57,7 +57,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public async Task UpdateUserAsync_UpdatesUserBalanceSuccessfully()
+        public async Task UpdateUserAsync_UpdatesUserBalanceSuccessfully_WhenUserExists()
         {
             // Arrange
             var userId = 1;

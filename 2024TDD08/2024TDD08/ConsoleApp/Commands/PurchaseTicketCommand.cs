@@ -78,7 +78,7 @@ namespace ConsoleApp.Commands
             }
         }
 
-        protected internal async Task<EventDto> FetchEventDetailsAsync(string eventId)
+        public async Task<EventDto> FetchEventDetailsAsync(string eventId)
         {
             try
             {

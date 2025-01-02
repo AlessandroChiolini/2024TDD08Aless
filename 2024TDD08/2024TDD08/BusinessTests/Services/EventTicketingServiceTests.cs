@@ -134,7 +134,7 @@ namespace Business.Tests.Services
         }
 
         [Fact]
-        public void GetAvailableEvents_ReturnsListOfEvents()
+        public void GetAvailableEvents_ReturnsListOfEvents_WhenCalled()
         {
             // Arrange
             var events = new List<Event>
@@ -228,7 +228,7 @@ namespace Business.Tests.Services
         }
 
         [Fact]
-        public void PurchaseTicket_Overloaded_ThrowsNotImplementedException()
+        public void PurchaseTicket_ThrowsNotImplementedException_WhenOverloaded()
         {
             // Arrange
             var userId = 1;
@@ -242,7 +242,7 @@ namespace Business.Tests.Services
         }
 
         [Fact]
-        public void CancelTicket_ThrowsNotImplementedException()
+        public void CancelTicket_ThrowsNotImplementedException_WhenCalled()
         {
             // Arrange
             var userId = 1;

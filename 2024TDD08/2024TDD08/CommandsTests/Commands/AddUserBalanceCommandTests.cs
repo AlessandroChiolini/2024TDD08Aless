@@ -16,7 +16,7 @@ namespace ConsoleApp.Tests.Commands
         private const string BaseAddress = "https://localhost:7249/";
 
         [Fact]
-        public async Task ExecuteAsync_SuccessfulResponse_DisplaysSuccessMessage()
+        public async Task ExecuteAsync_DisplaysSuccessMessage_WhenResponseIsSuccessful()
         {
             // Arrange
             var userId = 1;
@@ -57,7 +57,7 @@ namespace ConsoleApp.Tests.Commands
 
 
         [Fact]
-        public async Task ExecuteAsync_FailedResponse_DisplaysErrorMessage()
+        public async Task ExecuteAsync_DisplaysErrorMessage_WhenResponseFails()
         {
             // Arrange
             var userId = 1;
@@ -97,7 +97,7 @@ namespace ConsoleApp.Tests.Commands
 
 
         [Fact]
-        public async Task ExecuteAsync_ExceptionThrown_DisplaysErrorMessage()
+        public async Task ExecuteAsync_DisplaysErrorMessage_WhenExceptionIsThrown()
         {
             // Arrange
             var userId = 1;
@@ -131,7 +131,7 @@ namespace ConsoleApp.Tests.Commands
 
 
         [Fact]
-        public async Task ExecuteAsync_VerifiesPayloadContent()
+        public async Task ExecuteAsync_VerifiesPayloadContent_WhenCalled()
         {
             // Arrange
             var userId = 1;

@@ -10,10 +10,12 @@ namespace WebAPI.Controllers
     public class EventTicketController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly bool _simulateException;
 
-        public EventTicketController(AppDbContext context)
+        public EventTicketController(AppDbContext context, bool simulateException = false)
         {
             _context = context;
+            _simulateException = simulateException;
         }
 
         // Endpoint to retrieve all events
@@ -22,6 +24,8 @@ namespace WebAPI.Controllers
         {
             try
             {
+                if (_simulateException) throw new Exception("Simulated exception");
+
                 var events = await _context.Events
                     .Select(e => new
                     {
@@ -33,9 +37,7 @@ namespace WebAPI.Controllers
                     .ToListAsync();
 
                 if (events == null || events.Count == 0)
-                {
                     return NotFound("No events available.");
-                }
 
                 return Ok(events);
             }
@@ -139,16 +141,18 @@ namespace WebAPI.Controllers
         {
             try
             {
+                if (_simulateException) throw new Exception("Simulated exception");
+
                 var buyers = await _context.EventTickets
                     .Where(ticket => ticket.EventId == eventId)
                     .Join(
-                        _context.Users,              // Join with Users table
-                        ticket => ticket.UserId,     // Match UserId from tickets
-                        user => user.Id,             // Match Id from users
+                        _context.Users,
+                        ticket => ticket.UserId,
+                        user => user.Id,
                         (ticket, user) => new
                         {
-                            UserId = user.Id,        // User's ID
-                            UserName = user.Name,    // User's Name
+                            UserId = user.Id,
+                            UserName = user.Name,
                             Quantity = ticket.Quantity,
                             PurchaseDate = ticket.PurchaseDate
                         }
@@ -156,9 +160,7 @@ namespace WebAPI.Controllers
                     .ToListAsync();
 
                 if (buyers == null || buyers.Count == 0)
-                {
                     return NotFound("No users have purchased tickets for this event.");
-                }
 
                 return Ok(buyers);
             }
@@ -168,7 +170,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        [HttpDelete("event/{eventId}")]
+            [HttpDelete("event/{eventId}")]
         public async Task<IActionResult> RemoveTicket(string eventId)
         {
             // Check if the ticket exists for the given event

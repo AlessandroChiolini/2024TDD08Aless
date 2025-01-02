@@ -67,7 +67,7 @@ namespace WebAPI.Tests.Controllers
         }
 
         [Fact]
-        public async Task AddBalance_ReturnsServerError_OnException()
+        public async Task AddBalance_ReturnsServerError_WhenExceptionOccurs()
         {
             // Arrange
             var userId = 1;
@@ -183,7 +183,7 @@ namespace WebAPI.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetUserById_ReturnsBadRequest_OnException()
+        public async Task GetUserById_ReturnsBadRequest_WhenExceptionOccurs()
         {
             // Arrange
             var userId = 1;
@@ -203,7 +203,7 @@ namespace WebAPI.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetUserBalance_ReturnsBadRequest_OnException()
+        public async Task GetUserBalance_ReturnsBadRequest_WhenExceptionOccurs()
         {
             // Arrange
             var userId = 1;

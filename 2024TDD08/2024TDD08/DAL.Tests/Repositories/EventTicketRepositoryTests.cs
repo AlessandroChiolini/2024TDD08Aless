@@ -30,7 +30,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void GetNextId_ReturnsCorrectNextId()
+        public void GetNextId_ReturnsCorrectNextId_WhenExistingTickets()
         {
             // Act
             var nextId = _ticketRepository.GetNextId();
@@ -40,7 +40,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void AddTicket_AddsTicketToRepository()
+        public void AddTicket_AddsTicketToRepository_WhenValidTicket()
         {
             // Arrange
             var newTicket = new EventTicket
@@ -62,7 +62,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void GetTicketsByUserId_ReturnsCorrectTickets_WhenUserHasTickets()
+        public void GetTicketsByUserId_ReturnsCorrectTickets_WhenExistingUser()
         {
             // Act
             var userTickets = _ticketRepository.GetTicketsByUserId(1);
@@ -74,7 +74,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void GetTicketsByUserId_ReturnsEmptyList_WhenUserHasNoTickets()
+        public void GetTicketsByUserId_ReturnsEmptyList_WhenNonExistingUser()
         {
             // Act
             var userTickets = _ticketRepository.GetTicketsByUserId(99);
@@ -84,7 +84,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void RemoveTicket_RemovesTicket_WhenTicketExists()
+        public void RemoveTicket_RemovesTicket_WhenExistingTicket()
         {
             // Arrange
             var ticketId = 1;
@@ -99,7 +99,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void RemoveTicket_DoesNothing_WhenTicketDoesNotExist()
+        public void RemoveTicket_DoesNothing_WhenNonExistingTicket()
         {
             // Arrange
             var nonExistentTicketId = 99;
@@ -113,7 +113,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void GetTicketById_ReturnsCorrectTicket_WhenTicketExists()
+        public void GetTicketById_ReturnsCorrectTicket_WhenExistingTicket()
         {
             // Arrange
             var ticketId = 1;
@@ -129,7 +129,7 @@ namespace DAL.Tests.Repositories
         }
 
         [Fact]
-        public void GetTicketById_ReturnsNull_WhenTicketDoesNotExist()
+        public void GetTicketById_ReturnsNull_WhenNonExistingTicket()
         {
             // Arrange
             var nonExistentTicketId = 99;

@@ -9,7 +9,7 @@ namespace ConsoleApp.Tests.Commands
     public class CommandInvokerTests
     {
         [Fact]
-        public async Task ExecuteCommandsAsync_ExecutesAllCommandsInOrder()
+        public async Task ExecuteCommandsAsync_ExecutesAllCommandsInOrder_WhenCommandsAreInList()
         {
             // Arrange
             var mockCommand1 = new Mock<ICommand>();
@@ -28,7 +28,7 @@ namespace ConsoleApp.Tests.Commands
         }
 
         [Fact]
-        public async Task ExecuteCommandsAsync_HandlesEmptyCommandListGracefully()
+        public async Task ExecuteCommandsAsync_DoesNotThrowExceptions_WhenCommandListIsEmpty()
         {
             // Arrange
             var invoker = new CommandInvoker();
@@ -38,7 +38,7 @@ namespace ConsoleApp.Tests.Commands
         }
 
         [Fact]
-        public void ClearCommands_RemovesAllCommands()
+        public void ClearCommands_RemovesAllCommands_WhenCalled()
         {
             // Arrange
             var mockCommand = new Mock<ICommand>();
@@ -54,7 +54,7 @@ namespace ConsoleApp.Tests.Commands
         }
 
         [Fact]
-        public void AddCommand_AddsCommandToList()
+        public void AddCommand_AddsCommandToList_WhenValidCommandIsProvided()
         {
             // Arrange
             var mockCommand = new Mock<ICommand>();

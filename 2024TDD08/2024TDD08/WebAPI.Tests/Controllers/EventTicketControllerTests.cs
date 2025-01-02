@@ -51,7 +51,7 @@ namespace WebAPI.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetAllEvents_ReturnsAllEvents()
+        public async Task GetAllEvents_ReturnsAllEvents_WhenEventsExist()
         {
             var result = await _controller.GetAllEvents();
 
@@ -236,6 +236,54 @@ namespace WebAPI.Tests.Controllers
             // Assert
             var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
             Assert.Equal("User not found.", notFoundResult.Value);
+        }
+
+        [Fact]
+        public async Task GetAllEvents_ReturnsServerError_WhenExceptionOccurs()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new AppDbContext(options);
+            var controller = new EventTicketController(context, simulateException: true);
+
+            // Act
+            var result = await controller.GetAllEvents();
+
+            // Assert
+            var serverErrorResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverErrorResult.StatusCode);
+            Assert.Contains("An error occurred while retrieving events", serverErrorResult.Value.ToString());
+        }
+
+
+        [Fact]
+        public async Task GetEventBuyers_ReturnsServerError_WhenExceptionOccurs()
+        {
+            // Arrange
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+
+            using var context = new AppDbContext(options);
+            var controller = new EventTicketController(context, simulateException: true);
+
+            // Act
+            var result = await controller.GetEventBuyers("E1");
+
+            // Assert
+            var serverErrorResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(500, serverErrorResult.StatusCode);
+
+            // Validate the error message
+            var value = serverErrorResult.Value;
+            var messageProperty = value.GetType().GetProperty("Message")?.GetValue(value)?.ToString();
+            var errorProperty = value.GetType().GetProperty("Error")?.GetValue(value)?.ToString();
+
+            Assert.Equal("An error occurred while retrieving buyers.", messageProperty);
+            Assert.Contains("Simulated exception", errorProperty);
         }
     }
 }
