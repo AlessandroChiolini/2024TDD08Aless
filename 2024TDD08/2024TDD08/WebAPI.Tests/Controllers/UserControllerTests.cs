@@ -134,26 +134,6 @@ namespace WebAPI.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetUserBalance_ReturnsBadRequest_OnException()
-        {
-            // Arrange
-            var userId = 1;
-
-            _userBalanceServiceMock.Setup(s => s.GetUserBalanceAsync(userId))
-                                   .ThrowsAsync(new Exception("Test exception"));
-
-            // Act
-            var result = await _controller.GetUserBalance(userId);
-
-            // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-            var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
-            Assert.Equal("Failed to fetch balance.", response.Message);
-
-            _userBalanceServiceMock.Verify(s => s.GetUserBalanceAsync(userId), Times.Once);
-        }
-
-        [Fact]
         public async Task GetUserById_ReturnsUser_WhenUserExists()
         {
             // Arrange
@@ -201,5 +181,47 @@ namespace WebAPI.Tests.Controllers
 
             _userBalanceServiceMock.Verify(s => s.GetUserByIdAsync(userId), Times.Once);
         }
+
+        [Fact]
+        public async Task GetUserById_ReturnsBadRequest_OnException()
+        {
+            // Arrange
+            var userId = 1;
+
+            _userBalanceServiceMock.Setup(s => s.GetUserByIdAsync(userId))
+                                   .ThrowsAsync(new Exception("Test exception"));
+
+            // Act
+            var result = await _controller.GetUserById(userId);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
+            Assert.Equal("Failed to retrieve user.", response.Message);
+
+            _userBalanceServiceMock.Verify(s => s.GetUserByIdAsync(userId), Times.Once);
+        }
+
+        [Fact]
+        public async Task GetUserBalance_ReturnsBadRequest_OnException()
+        {
+            // Arrange
+            var userId = 1;
+
+            _userBalanceServiceMock.Setup(s => s.GetUserBalanceAsync(userId))
+                                   .ThrowsAsync(new Exception("Simulated exception"));
+
+            // Act
+            var result = await _controller.GetUserBalance(userId);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            var response = Assert.IsType<ErrorResponse>(badRequestResult.Value);
+            Assert.Equal("Failed to fetch balance.", response.Message);
+
+            _userBalanceServiceMock.Verify(s => s.GetUserBalanceAsync(userId), Times.Once);
+        }
+
+
     }
 }

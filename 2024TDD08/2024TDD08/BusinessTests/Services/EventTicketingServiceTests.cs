@@ -227,5 +227,30 @@ namespace Business.Tests.Services
             _ticketRepositoryMock.Verify(repo => repo.RemoveTicket(It.IsAny<int>()), Times.Never);
         }
 
+        [Fact]
+        public void PurchaseTicket_Overloaded_ThrowsNotImplementedException()
+        {
+            // Arrange
+            var userId = 1;
+            var eventId = "E1";
+            var quantity = 2;
+            var serviceCard = "TEST123";
+
+            // Act & Assert
+            Assert.Throws<NotImplementedException>(() =>
+                _eventTicketingService.PurchaseTicket(userId, eventId, quantity, serviceCard));
+        }
+
+        [Fact]
+        public void CancelTicket_ThrowsNotImplementedException()
+        {
+            // Arrange
+            var userId = 1;
+            var eventId = "E1";
+
+            // Act & Assert
+            Assert.Throws<NotImplementedException>(() =>
+                _eventTicketingService.CancelTicket(userId, eventId));
+        }
     }
 }

@@ -2,6 +2,7 @@
 using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,6 +61,46 @@ namespace WebAPI.Tests.Controllers
         }
 
         [Fact]
+        public async Task GetAllEvents_ReturnsNotFound_WhenNoEventsExist()
+        {
+            // Arrange
+            _context.Events.RemoveRange(_context.Events);
+            await _context.SaveChangesAsync();
+
+            // Act
+            var result = await _controller.GetAllEvents();
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("No events available.", notFoundResult.Value);
+        }
+
+        [Fact]
+        public async Task PurchaseTicket_ReturnsNotFound_WhenEventDoesNotExist()
+        {
+            // Arrange
+            var request = new PurchaseRequest { UserId = 1, EventId = "NonExistent", Quantity = 1 };
+
+            // Act
+            var result = await _controller.PurchaseTicket(request);
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("Event not found.", notFoundResult.Value);
+        }
+
+        [Fact]
+        public void GetUserTickets_ReturnsNotFound_WhenNoTicketsExist()
+        {
+            // Act
+            var result = _controller.GetUserTickets(999); // Non-existent user
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("No tickets found for this user.", notFoundResult.Value);
+        }
+
+        [Fact]
         public async Task PurchaseTicket_ReturnsOk_WhenPurchaseIsSuccessful()
         {
             var request = new PurchaseRequest
@@ -90,6 +131,35 @@ namespace WebAPI.Tests.Controllers
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Equal("Insufficient balance.", badRequestResult.Value);
         }
+
+        [Fact]
+        public async Task PurchaseTicket_ReturnsBadRequest_WhenPayloadIsInvalid()
+        {
+            // Arrange
+            var invalidRequest = new PurchaseRequest { UserId = 1, EventId = "E2", Quantity = 0 };
+
+            // Act
+            var result = await _controller.PurchaseTicket(invalidRequest);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("Invalid request payload.", badRequestResult.Value);
+        }
+
+        [Fact]
+        public async Task PurchaseTicket_ReturnsBadRequest_WhenNotEnoughTicketsAvailable()
+        {
+            // Arrange
+            var request = new PurchaseRequest { UserId = 1, EventId = "E1", Quantity = 200 };
+
+            // Act
+            var result = await _controller.PurchaseTicket(request);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("Not enough tickets available for this event.", badRequestResult.Value);
+        }
+
 
         [Fact]
         public void GetUserTickets_ReturnsTickets_WhenTicketsExist()
@@ -152,6 +222,20 @@ namespace WebAPI.Tests.Controllers
             // Use fully qualified namespace if there's a conflict
             var response = Assert.IsType<WebAPI.Controllers.ErrorResponse>(notFoundResult.Value);
             Assert.Equal("Ticket not found for the specified event.", response.Message);
+        }
+
+        [Fact]
+        public async Task PurchaseTicket_ReturnsNotFound_WhenUserDoesNotExist()
+        {
+            // Arrange
+            var request = new PurchaseRequest { UserId = 999, EventId = "E1", Quantity = 1 }; // Non-existent user
+
+            // Act
+            var result = await _controller.PurchaseTicket(request);
+
+            // Assert
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("User not found.", notFoundResult.Value);
         }
     }
 }
