@@ -409,8 +409,6 @@ namespace ConsoleApp.Tests.Commands
                 ItExpr.IsAny<CancellationToken>());
         }
 
-
-
         // Helper method to verify the request content
         private bool VerifyRequestContent(HttpContent content, string expectedPayload)
         {

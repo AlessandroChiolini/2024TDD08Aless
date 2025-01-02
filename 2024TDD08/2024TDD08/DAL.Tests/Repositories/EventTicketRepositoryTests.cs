@@ -112,6 +112,36 @@ namespace DAL.Tests.Repositories
             Assert.Equal(3, allTickets.Count);
         }
 
+        [Fact]
+        public void GetTicketById_ReturnsCorrectTicket_WhenTicketExists()
+        {
+            // Arrange
+            var ticketId = 1;
+
+            // Act
+            var result = _ticketRepository.GetTicketById(ticketId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(ticketId, result.Id);
+            Assert.Equal(1, result.UserId);
+            Assert.Equal("E1", result.EventId);
+        }
+
+        [Fact]
+        public void GetTicketById_ReturnsNull_WhenTicketDoesNotExist()
+        {
+            // Arrange
+            var nonExistentTicketId = 99;
+
+            // Act
+            var result = _ticketRepository.GetTicketById(nonExistentTicketId);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+
         // Helper method to retrieve all tickets (for internal verification)
         private List<EventTicket> GetAllTickets()
         {
