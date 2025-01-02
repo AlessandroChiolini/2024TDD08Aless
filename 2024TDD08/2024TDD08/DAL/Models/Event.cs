@@ -14,17 +14,5 @@ namespace DAL.Models
         public int AvailableTickets { get; set; }
         public decimal TicketPrice { get; set; }
 
-        public bool HasAvailableTickets(int quantity) => AvailableTickets >= quantity;
-
-        public bool ReserveTickets(int quantity)
-        {
-            if (AvailableTickets >= quantity)
-            {
-                AvailableTickets -= quantity;
-                return true;
-            }
-            return false;
-        }
     }
-
 }
